@@ -1,11 +1,8 @@
-// acquire/services/kunnaService.js
+'use strict';
+const InputData= require('../models/InputData')
 const KUNNA_URL = "https://openapi.kunna.es/data/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NjM2NDEwNjB9.ixb4O5Jgk-e_oPMSsycpD7A_iGVqIl4Ijl2a_kLrT94";
 const ALIAS = "6339651";
 
-/**
- * Llama a Kunna con un rango [timeStart, timeEnd]
- * y devuelve el objeto { columns, values }.
- */
 async function fetchKunna(timeStart, timeEnd) {
     const url = KUNNA_URL;
     const headers = {

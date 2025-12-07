@@ -2,26 +2,28 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const InputDataSchema = new Schema({
-    // Los datos crudos recibidos de la API
+    features: { type: [Number], required: true },
+    featureCount: {type: Number, default: 7},
+    scalerVersion: {type: String, default: "v1"},
+
     dailyValues: { type: [Number], required: true }, 
     
-    // Metadatos de Kunna (según captura persistencia.docx)
+    // Metadatos de Kunna
     kunnaMeta: {
         alias: String,
         name: String,
-        daysUsed: [String] // Array de fechas en string
+        daysUsed: [String] 
     },
     
-    // Metadatos de la petición
+    // Metadatos de la descarga
     fetchMeta: {
         timeStart: Date,
         timeEnd: Date,
         source: { type: String, default: "acquire" }
     },
 
-    // Fecha objetivo de predicción
+    // Fecha objetivo
     targetDate: { type: Date, required: true },
-    
     createdAt: { type: Date, default: Date.now }
 });
 

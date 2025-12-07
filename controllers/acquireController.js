@@ -5,33 +5,39 @@ async function doAcquire(req, res) {
     try {
         // 1. Calcular fechas
         const { targetDate, timeStart, timeEnd } = calculateDates();
-
-        console.log(`[ACQUIRE] Iniciando adquisición para Target: ${targetDate.toISOString()}`);
+        console.log(`[ACQUIRE] Target: ${targetDate.toISOString()}`);
         
         // 2. Llamar a Kunna API
         const data = await fetchKunna(timeStart, timeEnd);
 
-        // --- ZONA DE DEPURACIÓN ---
-        console.log("Columnas recibidas de Kunna:", data.columns);
-        console.log("Primera fila de datos:", data.values[0]); 
-        // --------------------------
-
-        // 3. Procesar datos (Buscamos la columna 'value' dinámicamente)
-        // Buscamos en qué posición está la columna llamada "value"
+        // 3. Procesar datos (Buscamos la columna 'value')
         let valueIndex = data.columns.indexOf("value");
-        
-        // Si no la encuentra por nombre, probamos el índice 2 (suele ser: timestamp, alias, value)
-        if (valueIndex === -1) {
-            console.log("No se encontró columna 'value', probando índice 2...");
-            valueIndex = 2; 
-        }
+        if (valueIndex === -1) valueIndex = 2; // Fallback
 
+        // Extraemos los 3 valores de consumo (dailyValues)
         const values = data.values.map(row => row[valueIndex]); 
-        const daysUsed = data.values.map(row => row[0]); // El timestamp suele ser la 0
+        const daysUsed = data.values.map(row => row[0]); 
+
+        // --- ESTA ES LA PARTE QUE TE FALTA ---
+        // Construimos el array 'features' de 7 elementos.
+        
+        const tDate = new Date(targetDate);
+        
+        // Extraemos componentes numéricos de la fecha objetivo
+        const f_hour = tDate.getUTCHours();      // Hora
+        const f_dow  = tDate.getUTCDay();        // Día de la semana
+        const f_month= tDate.getUTCMonth() + 1;  // Mes
+        const f_day  = tDate.getUTCDate();       // Día del mes
+
+        // Concatenamos: [Valor1, Valor2, Valor3, Hora, DiaSem, Mes, DiaMes]
+        const features = [...values, f_hour, f_dow, f_month, f_day];
+        // -------------------------------------
 
         // 4. Guardar en MongoDB
         const inputData = await InputData.create({
+            features: features,       // <--- ¡IMPORTANTE! Pasamos el array calculado
             dailyValues: values,
+            featureCount: 7,
             kunnaMeta: {
                 alias: ALIAS,
                 name: "1d",
